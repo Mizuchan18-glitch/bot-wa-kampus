@@ -98,13 +98,17 @@
 
 
 
-const express = require("express");
+// const express = require("express");
 const axios = require("axios");
 const { parseInput } = require("../utils/textParser");
 const { getReply } = require("../services/commandService");
 const { writeLog } = require("../utils/logger");
 
-const router = express.Router();
+const dotenv = require("dotenv");
+dotenv.config();
+
+// const router = express.Router();
+//application.use("/webhook", express.Router());
 
 router.get("/", (req, res) => {
   const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
@@ -121,6 +125,8 @@ router.get("/", (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  console.log("Webhook HIT");
+  console.log("RAW BODY:", JSON.stringify(req.body, null, 2));
   try {
     const message =
       req.body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
@@ -156,9 +162,17 @@ router.post("/", async (req, res) => {
     writeLog(`OUT | ${from} | ${reply}`);
     res.sendStatus(200);
 
+    const value = req.body.entry?.[0]?.changes?.[0]?.value;
+    if (!value || !value.messages) {
+      return res.sendStatus(200);
+    }
+
+    const receivedMessage = value.messages[0];
+
+
   } catch (err) {
     writeLog(`ERR | ${err.message}`);
-    res.sendStatus(500);
+    res.sendStatus(200);
   }
 });
 
